@@ -890,7 +890,6 @@
         
         startTimeInput.addEventListener('change', calculateTimeUsage);
         squeezeEndInput.addEventListener('change', calculateTimeUsage);
-        // Also recalculate if squeezeStart changes (optional, but harmless)
         document.getElementById('squeezeStart').addEventListener('change', calculateTimeUsage);
 
 
@@ -986,7 +985,7 @@
         }
 
         // ----------------------------------------------------
-        // Summary Page & Dashboard Logic
+        // Summary Page & Dashboard Logic (UPDATED with Total Calculation)
         // ----------------------------------------------------
         function loadSummaryData() {
             const sumDate = document.getElementById('sumDate').value;
@@ -994,6 +993,7 @@
             const dailyRecords = records.filter(r => r.date === sumDate);
             const tbody = document.getElementById('summaryTableBody');
             tbody.innerHTML = '';
+            
             let totalSludgeVol = 0;
             let totalWeight = 0;
 
@@ -1018,11 +1018,13 @@
                         <td>${parseFloat(rec.capacity).toFixed(1)}</td>
                     `;
                     tbody.appendChild(tr);
+                    
+                    // Calculate Totals
                     totalSludgeVol += parseFloat(rec.sludgeFeed) || 0;
                     totalWeight += parseFloat(rec.capacity) || 0;
                 });
 
-                // Update Summary Footer
+                // Update Summary Footer with calculated totals
                 document.getElementById('sumTotalCycles').innerText = dailyRecords.length;
                 document.getElementById('sumTotalSludgeVol').innerText = totalSludgeVol.toFixed(1);
                 document.getElementById('sumTotalWeight').innerText = totalWeight.toFixed(1);
@@ -1202,6 +1204,7 @@
             sheetData.push([]);
             sheetData.push([`จำนวนรอบ ${dailyRecords.length} Cycles`, "", "", "", "", "", "", `ปริมาณตะกอนเข้าระบบ ${totalSludge.toFixed(1)} m³/day`, `น้ำหนักตะกอนต่อวัน ${totalWeight.toFixed(1)} Ton/day`]);
             sheetData.push([]);
+            
             sheetData.push(["3. การซ่อมแซมเครื่องจักร/โครงสร้างอาคาร/อื่นๆ"]);
             maintenanceNotes.forEach((note, index) => {
                 sheetData.push([`${index + 1}. ${note}`]);
