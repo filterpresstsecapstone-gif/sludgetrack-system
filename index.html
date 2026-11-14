@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SludgeTrack - Water Treatment Plant</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Sarabun) -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary-blue: #0056b3;
+            --secondary-blue: #00a8e8;
+            --bg-light: #f0f4f8;
+            --card-bg: #ffffff;
+            --text-dark: #2c3e50;
+            --text-muted: #6c757d;
+            --border-color: #cbd5e1;
+            --success-green: #10b981;
+        }
+        
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            background-color: var(--bg-light); 
+            color: var(--text-dark); 
+            font-size: 0.95rem; 
+            overflow-x: hidden;
+        }
+
+        .top-header { background: linear-gradient(90deg, var(--primary-blue) 0%, var(--secondary-blue) 100%); color: white; padding: 12px 0; font-weight: 500; letter-spacing: 0.5px; box-shadow: 0 2px 10px rgba(0, 86, 179, 0.2); }
+        .navbar { background-color: #ffffff; border-bottom: 3px solid var(--primary-blue); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 10px 0; }
+        .navbar-brand { color: var(--primary-blue) !important; font-weight: 700; font-size: 1.3rem; display: flex; align-items: center; cursor: pointer; }
+        .nav-link { color: var(--text-muted) !important; font-weight: 500; cursor: pointer; padding: 0.6rem 1.2rem; border-radius: 6px; transition: all 0.2s; }
+        .nav-link:hover { background-color: #e2e8f0; color: var(--primary-blue) !important; }
+        .nav-link.active { color: #ffffff !important; background-color: var(--primary-blue); font-weight: 600; box-shadow: 0 4px 6px rgba(0, 86, 179, 0.3); }
+
+        .custom-card { background-color: var(--card-bg); border-radius: 10px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.03); padding: 24px; margin-bottom: 24px; }
+        .card-title { color: var(--primary-blue); font-size: 1.15rem; font-weight: 600; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; display: flex; align-items: center; }
+        
+        .form-control, .form-select { background-color: #f8fafc; border: 1px solid var(--border-color); color: var(--text-dark); font-size: 0.95rem; border-radius: 6px; padding: 0.5rem 0.75rem; }
+        .form-control:focus, .form-select:focus { background-color: #ffffff; border-color: var(--secondary-blue); box-shadow: 0 0 0 0.25rem rgba(0, 168, 232, 0.15); }
+        .form-label { color: var(--text-dark); font-size: 0.9rem; font-weight: 500; margin-bottom: 6px; }
+        .input-group-text { background-color: #e2e8f0; color: var(--text-muted); border: 1px solid var(--border-color); font-size: 0.85rem; }
+        
+        .table { color: var(--text-dark); margin-bottom: 0; font-size: 0.9rem; }
+        .table thead th { background-color: #f1f5f9; color: var(--primary-blue); border-bottom: 2px solid var(--border-color); font-weight: 600; white-space: nowrap; }
+        .table tbody td { border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .table-hover tbody tr:hover { background-color: #f0f9ff; }
+        
+        .btn-primary { background-color: var(--primary-blue); border: none; font-weight: 500; }
+        .btn-primary:hover { background-color: #004494; }
+        .btn-success { background-color: #10b981; border: none; font-weight: 500; }
+        .btn-success:hover { background-color: #059669; }
+        .btn-excel { background-color: #217346; color: white; border: none; font-weight: 600; }
+        .btn-excel:hover { background-color: #1a5c38; color: white; }
+        
+        .page-section { display: none; }
+        .page-section.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Landing Page */
+        .landing-container { height: 80vh; display: flex; align-items: center; justify-content: center; }
+        .menu-card { transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; border: 2px solid transparent; }
+        .menu-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0, 86, 179, 0.15); border-color: var(--secondary-blue); }
+        .menu-icon { font-size: 4rem; color: var(--primary-blue); margin-bottom: 20px; }
+
+        /* Calc Box */
+        .calc-box { background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 24px !important; }
+        .calc-box .form-label { margin-bottom: 8px; font-weight: 600; }
+        .calc-box .form-control { margin-bottom: 8px; }
+
+        /* Summary Table */
+        .summary-table th, .summary-table td { padding: 10px 12px; font-size: 0.95rem; }
+        .summary-table th { text-align: center; vertical-align: middle; background-color: #f8fafc; }
+        .summary-table td.item-name { text-align: left; }
+        .summary-table td.unit-text { text-align: center; color: var(--text-muted); }
+        .summary-table input[type="number"], .summary-table input[type="text"] { text-align: right; border: 1px solid var(--border-color); border-radius: 4px; padding: 6px 10px; width: 100%; background-color: #ffffff; }
+        .summary-table input[type="text"] { text-align: left; }
+        .summary-table input:focus { border-color: var(--secondary-blue); outline: none; box-shadow: 0 0 0 2px rgba(0, 168, 232, 0.2); }
+        .note-text { font-size: 0.8rem; color: #475569; line-height: 1.6; text-align: left; padding: 15px; background-color: #f8fafc; }
+        
+        .table-section-2 { border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; }
+        .table-section-2 th { background-color: #e2e8f0; color: var(--primary-blue); font-weight: 600; text-align: center; vertical-align: middle; border: 1px solid var(--border-color); padding: 12px 8px; }
+        .table-section-2 td { text-align: center; vertical-align: middle; border: 1px solid var(--border-color); padding: 10px 8px; }
+        .table-section-2 tfoot td { background-color: #f1f5f9; font-weight: 600; border: 1px solid var(--border-color); padding: 12px 10px; }
+
+        .maintenance-row { margin-bottom: 10px; }
+        .btn-remove { padding: 0.375rem 0.75rem; font-size: 0.875rem; border-radius: 6px; }
+
+        /* Maintenance Management Styles */
+        .status-due { background-color: #fef2f2; border-left: 4px solid #ef4444; }
+        .status-upcoming { background-color: #fffbeb; border-left: 4px solid #f59e0b; }
+        .status-normal { background-color: #ffffff; }
+        .checklist-item { display: flex; align-items: flex-start; padding: 12px; border-bottom: 1px solid #e2e8f0; background: #fff; transition: all 0.2s; }
+        .checklist-item:hover { background: #f8fafc; }
+        .checklist-item:last-child { border-bottom: none; }
+        .checklist-item input[type="checkbox"] { width: 1.2rem; height: 1.2rem; margin-right: 15px; cursor: pointer; margin-top: 3px;}
+        .checklist-item label { cursor: pointer; margin-bottom: 0; flex-grow: 1; font-weight: 500; line-height: 1.4; }
+        .machine-badge { font-size: 0.75rem; padding: 0.25em 0.6em; border-radius: 10px; background-color: #e2e8f0; color: #475569; margin-right: 8px; font-weight: 600; display: inline-block; margin-bottom: 4px;}
+
+        /* Engineering Dashboard Cards (Simplified) */
+        .kpi-card { border-radius: 10px; padding: 20px; text-align: center; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .kpi-title { font-size: 1rem; opacity: 0.9; margin-bottom: 5px; }
+        .kpi-value { font-size: 2.5rem; font-weight: 700; line-height: 1; }
+        .kpi-unit { font-size: 1.2rem; font-weight: 400; }
+        .bg-gradient-blue { background: linear-gradient(135deg, #0d6efd, #0dcaf0); }
+        .bg-gradient-green { background: linear-gradient(135deg, #198754, #20c997); }
+    </style>
+</head>
+<body>
+
+    <div class="top-header text-center d-none d-md-block">
+        <i class="fa-solid fa-droplet me-2"></i> Water Treatment Plant Management System
+    </div>
+
+    <nav class="navbar navbar-expand-lg mb-4">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand" onclick="switchPage('landing-page')"><i class="fa-solid fa-water me-2 text-info"></i> SludgeTrack</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav gap-2" id="mainNav"></ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4">
+        
+        <!-- PAGE 0: LANDING PAGE -->
+        <div id="landing-page" class="page-section active">
+            <div class="landing-container">
+                <div class="row w-100 justify-content-center gap-4">
+                    <div class="col-md-5">
+                        <div class="custom-card menu-card text-center p-5 h-100" onclick="switchPage('data-page')">
+                            <i class="fa-solid fa-filter menu-icon"></i>
+                            <h3 class="fw-bold mb-3">Sludge Dewatering</h3>
+                            <p class="text-muted">บันทึกข้อมูลการบีบอัดตะกอนประจำวัน (Data Entry) และสรุปผลรายงาน (Summary)</p>
+                            <button class="btn btn-primary mt-3 px-4 py-2">เข้าสู่ระบบบันทึกข้อมูล</button>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="custom-card menu-card text-center p-5 h-100" onclick="switchPage('maintenance-page')">
+                            <i class="fa-solid fa-screwdriver-wrench menu-icon" style="color: #f59e0b;"></i>
+                            <h3 class="fw-bold mb-3">Maintenance Management</h3>
+                            <p class="text-muted">ระบบแจ้งเตือนการบำรุงรักษา ตรวจสอบรายการที่ใกล้ถึงกำหนด และติดตามงานที่เสร็จสิ้นแล้ว</p>
+                            <button class="btn btn-warning text-dark mt-3 px-4 py-2">เข้าสู่ระบบซ่อมบำรุง</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 1: DATA ENTRY -->
+        <div id="data-page" class="page-section">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold text-primary"><i class="fa-solid fa-filter me-2"></i> Sludge Dewatering - Data Entry</h4>
+                <button class="btn btn-outline-secondary btn-sm" onclick="switchPage('landing-page')"><i class="fa-solid fa-arrow-left me-1"></i> กลับหน้าหลัก</button>
+            </div>
+            <div class="row">
+                <div class="col-xl-5 col-lg-6">
+                    <div class="custom-card">
+                        <h5 class="card-title"><i class="fa-solid fa-pen-to-square me-2"></i> Record Dewatering Data</h5>
+                        <form id="sludgeForm">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Date</label>
+                                    <input type="date" class="form-control" id="date" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Round No.</label>
+                                    <input type="number" class="form-control" id="round" placeholder="e.g., 1" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Filter Press No.</label>
+                                    <input type="text" class="form-control" id="machine" placeholder="e.g., 4" required>
+                                </div>
+                            </div>
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Start Time</label>
+                                    <input type="time" class="form-control" id="startTime" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">SS% (Conc.)</label>
+                                    <input type="number" step="0.01" class="form-control" id="ssPercent" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">PL% (Polymer)</label>
+                                    <input type="number" step="0.01" class="form-control" id="plPercent" required>
+                                </div>
+                            </div>
+                            <div class="row g-4 mb-3 p-3 calc-box">
+                                <div class="col-md-6">
+                                    <label class="form-label text-primary">Entered Squeezing</label>
+                                    <input type="time" class="form-control" id="squeezeStart" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-primary">Ready for Scrapping</label>
+                                    <input type="time" class="form-control" id="squeezeEnd" required>
+                                </div>
+                                <div class="col-12 mt-4">
+                                    <label class="form-label text-success">Time Usage - Auto Calculated</label>
+                                    <input type="text" class="form-control text-center fw-bold fs-4" id="timeUsage" readonly placeholder="00:00">
+                                </div>
+                            </div>
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Sludge Feed</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" id="sludgeFeed" required>
+                                        <span class="input-group-text">m³</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Polymer Feed</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" id="polymerFeed" required>
+                                        <span class="input-group-text">m³</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Capacity</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" id="capacity" required>
+                                        <span class="input-group-text">Ton.DS</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label">% Cake Dryness</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" id="cakeDryness" placeholder="e.g., 40.09" required>
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label">Notes (หมายเหตุรอบนี้)</label>
+                                    <input type="text" class="form-control" id="roundNotes" placeholder="ระบุหมายเหตุถ้ามี">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100 py-2" id="submitBtn">
+                                <i class="fa-solid fa-save me-1"></i> Save Record to Database
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-xl-7 col-lg-6">
+                    <div class="custom-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                            <h5 class="card-title border-0 mb-0 pb-0"><i class="fa-solid fa-list me-2"></i> Operation History</h5>
+                            <button class="btn btn-outline-primary btn-sm" onclick="loadDataFromDatabase()"><i class="fa-solid fa-rotate me-1"></i> Refresh</button>
+                        </div>
+                        <div class="table-responsive" style="max-height: 650px; overflow-y: auto;">
+                            <table class="table table-hover table-bordered text-center">
+                                <thead class="sticky-top">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Round</th>
+                                        <th>FP No.</th>
+                                        <th>Start</th>
+                                        <th>Squeeze</th>
+                                        <th>Scrap</th>
+                                        <th>Usage</th>
+                                        <th>Sludge (m³)</th>
+                                        <th>Polymer (m³)</th>
+                                        <th>Dryness (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody">
+                                    <tr><td colspan="10" class="text-center text-muted py-4"><i class="fa-solid fa-spinner fa-spin me-2"></i> กำลังโหลดข้อมูล...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 2: SUMMARY -->
+        <div id="summary-page" class="page-section">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold text-primary"><i class="fa-solid fa-file-invoice me-2"></i> Sludge Dewatering - Summary</h4>
+                <button class="btn btn-outline-secondary btn-sm" onclick="switchPage('landing-page')"><i class="fa-solid fa-arrow-left me-1"></i> กลับหน้าหลัก</button>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="custom-card">
+                        <div class="row g-3 mb-4 p-3 bg-light rounded border">
+                            <div class="col-md-4">
+                                <label class="form-label text-primary fw-bold">Report Date</label>
+                                <input type="date" class="form-control" id="sumDate" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-primary fw-bold">Shift</label>
+                                <select class="form-select" id="sumShift">
+                                    <option value="Night Shift">Night Shift (00:00 - 08:00)</option>
+                                    <option value="Morning Shift" selected>Morning Shift (08:00 - 16:00)</option>
+                                    <option value="Afternoon Shift">Afternoon Shift (16:00 - 24:00)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="button" class="btn btn-outline-primary w-100" onclick="loadSummaryData()">
+                                    <i class="fa-solid fa-rotate me-1"></i> Refresh Data for this Date
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Simplified Engineering Dashboard (Only 2 Cards) -->
+                        <div class="row g-3 mb-4 justify-content-center">
+                            <div class="col-md-5">
+                                <div class="kpi-card bg-gradient-blue">
+                                    <div class="kpi-title">Daily Target</div>
+                                    <div class="kpi-value">50 <span class="kpi-unit">Ton</span></div>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="kpi-card bg-gradient-green">
+                                    <div class="kpi-title">Actual Production</div>
+                                    <div class="kpi-value" id="kpiActual">0.0 <span class="kpi-unit">Ton</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chart Area -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-12">
+                                <div class="custom-card h-100 mb-0">
+                                    <h6 class="fw-bold text-secondary mb-3">Target vs Actual Production (Tons)</h6>
+                                    <div style="height: 250px;">
+                                        <canvas id="chartProduction"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form id="summaryForm">
+                            <div class="d-flex justify-content-between align-items-end mb-2 mt-4">
+                                <h6 class="fw-bold text-dark mb-0">1. รายการแสดงข้อมูลระบบบีบอัดตะกอน</h6>
+                                <span class="text-muted small fw-bold" id="headerDateDisplay">วันที่...</span>
+                            </div>
+                            <div class="table-responsive mb-4">
+                                <table class="table table-bordered summary-table mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th width="40%">รายการ</th>
+                                            <th width="15%" class="text-center">ปริมาณ</th>
+                                            <th width="15%" class="text-center">หน่วย</th>
+                                            <th width="30%">หมายเหตุ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="item-name">1. ปริมาณการใช้ไฟฟ้า LVDS-1</td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm text-end" id="sumLVDS1"></td>
+                                            <td class="unit-text">kWh/วัน</td>
+                                            <td rowspan="10" class="note-text align-middle">
+                                                <div style="margin-bottom: 10px;">* LVMD-1 คือ ปริมาณการใช้ไฟที่หักปริมาณการใช้ไฟของสำนักงานสนามแล้ว</div>
+                                                <div style="margin-bottom: 10px;">** ค่าความขุ่นน้ำระบายทิ้ง (Filtrated) สุ่มเก็บ 1 ตัวอย่างจากรอบบีบอัดตะกอนของวันนั้น</div>
+                                                <div style="margin-bottom: 10px;">*** ปริมาณตะกอนที่เข้าโรงงาน (SS) คำนวณจากปริมาณสารแขวนลอยของน้ำดิบและปริมาณน้ำดิบที่เข้าถัง 21-24</div>
+                                                <div>**** ปริมาณตะกอนที่ต้องบีบอัดต่อวัน คำนวณจาก ผลรวมของปริมาณตะกอนแห้งที่ต้องบีบอัดต่อวันจากปริมาณสารแขวนลอยในน้ำดิบสูงสุดรวมกับปริมาณตะกอนที่เกิดจากสารเคมีช่วยตกตะกอน</div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="item-name">2. ปริมาณการใช้ไฟฟ้า LVDS-2</td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm text-end" id="sumLVDS2"></td>
+                                            <td class="unit-text">kWh/วัน</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="item-name">3. ปริมาณการใช้ไฟฟ้า LVMD-1*</td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm text-end" id="sumLVMD1"></td>
+                                            <td class="unit-text">kWh/วัน</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="item-name bg-light">4. ปริมาณการใช้ไฟฟ้าต่อวัน</td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm text-end bg-light" id="sumTotalPower" readonly></td>
+                                            <td class="unit-text bg-light">kWh/วัน</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="item-name">5. ปริมาณการใช้น้ำประปาต่อวัน</td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm text-end" id="sumWater"></td>
+                                            <td class="unit-text">ลบ.ม./วัน</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="item-name">6. ความขุ่นน้ำระบายทิ้ง (Filtrated)**</td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm text-end" id="sumNTU"></td>
+                                            <td class="unit-text">NTU</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="item-name">7. ปริมาณตะกอนที่เข้าโรงงาน (NTU)</td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm text-end" id="sumSludgeNTU"></td>
+                                            <td class="unit-text">Ton</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="item-name">8. ปริมาณตะกอนที่เข้าโรงงาน (SS)***</td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm text-end" id="sumSludgeSS"></td>
+                                            <td class="unit-text">Ton</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="item-name">9. ปริมาณตะกอนที่เกิดจากสารเคมีที่ช่วยตกตะกอน</td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm text-end" id="sumChem"></td>
+                                            <td class="unit-text">Ton</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="item-name">10. ปริมาณตะกอนที่ต้องบีบอัดต่อวัน****</td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm text-end" id="sumSludgeNeed"></td>
+                                            <td class="unit-text">Ton</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <h6 class="mb-2 mt-4 fw-bold text-dark">2. รายงานผลการเดินระบบบีบอัดตะกอน</h6>
+                            <div class="table-responsive mb-4">
+                                <table class="table table-section-2 mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th width="8%">การเดินระบบ</th>
+                                            <th width="8%">FP No.</th>
+                                            <th width="10%">เวลาเริ่ม</th>
+                                            <th width="10%">เวลาหยุด</th>
+                                            <th width="15%">% ตะกอนแข็ง<br>(Sludge Cake)</th>
+                                            <th width="12%">ปริมาณ<br>Polymer (m³)</th>
+                                            <th colspan="2">ตะกอนเข้าระบบ Filter press</th>
+                                            <th width="15%">น้ำหนักตะกอน<br>(Ton/Cycle)</th>
+                                        </tr>
+                                        <tr>
+                                            <th colspan="5" style="border-top: none;"></th>
+                                            <th style="border-top: none;"></th>
+                                            <th width="12%">% ความเข้มข้น</th>
+                                            <th width="10%">m³/Cycle</th>
+                                            <th style="border-top: none;"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="summaryTableBody"></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="5" class="text-start">จำนวนรอบ <span id="sumTotalCycles">0</span> Cycles</td>
+                                            <td colspan="3" class="text-end">ปริมาณตะกอนเข้าระบบ <span id="sumTotalSludgeVol">0.0</span> m³/day</td>
+                                            <td class="text-end">น้ำหนักตะกอนต่อวัน <span id="sumTotalWeight">0.0</span> Ton/day</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2 mt-4">
+                                <h6 class="fw-bold text-dark mb-0">3. การซ่อมแซมเครื่องจักร/โครงสร้างอาคาร/อื่นๆ</h6>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addMaintenanceRow()">
+                                    <i class="fa-solid fa-plus me-1"></i> Add Note
+                                </button>
+                            </div>
+                            <div class="table-responsive mb-4">
+                                <table class="table table-bordered summary-table mb-0" id="maintenanceTable">
+                                    <tbody id="maintenanceTableBody"></tbody>
+                                </table>
+                            </div>
+                            <button type="button" class="btn btn-excel w-100 py-3 fs-5" onclick="exportToExcel()">
+                                <i class="fa-solid fa-file-export me-2"></i> EXPORT SUMMARY TO EXCEL
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 3: MAINTENANCE MANAGEMENT -->
+        <div id="maintenance-page" class="page-section">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold text-warning"><i class="fa-solid fa-screwdriver-wrench me-2"></i> Maintenance Management</h4>
+                <button class="btn btn-outline-secondary btn-sm" onclick="switchPage('landing-page')"><i class="fa-solid fa-arrow-left me-1"></i> กลับหน้าหลัก</button>
+            </div>
+
+            <div class="row">
+                <!-- Left: Upcoming / Due (Real Data Table) -->
+                <div class="col-xl-7">
+                    <div class="custom-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                            <h5 class="card-title text-danger border-0 mb-0 pb-0"><i class="fa-solid fa-triangle-exclamation me-2"></i> แผนงานบำรุงรักษา (Preventive Maintenance Plan)</h5>
+                            <div>
+                                <span class="badge bg-secondary">ทั้งหมด <span id="totalTasksCount">0</span> รายการ</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Search Box -->
+                        <div class="mb-3">
+                            <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="ค้นหาเครื่องจักร หรือ รายการบำรุงรักษา..." onkeyup="filterMaintenance()">
+                        </div>
+
+                        <div class="table-responsive" style="max-height: 650px; overflow-y: auto;">
+                            <table class="table table-bordered table-hover" id="maintenanceTable">
+                                <thead class="bg-light sticky-top">
+                                    <tr>
+                                        <th>Machine (เครื่องจักร)</th>
+                                        <th>Task (รายละเอียด)</th>
+                                        <th>PM Type</th>
+                                        <th>Next Due</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dueTasksTable">
+                                    <!-- Populated by JS from real data -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Checklist & Completed -->
+                <div class="col-xl-5">
+                    <div class="custom-card">
+                        <h5 class="card-title text-primary"><i class="fa-solid fa-clipboard-list me-2"></i> Today's Checklist (Suggested)</h5>
+                        <p class="text-muted small mb-3">รายการที่ระบบแนะนำให้ทำในวันนี้ (ดึงจากรายการที่ใกล้ถึงกำหนด)</p>
+                        <div class="border rounded mb-4" id="todayChecklist">
+                            <!-- Populated by JS -->
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+                            <h5 class="card-title text-success border-0 mb-0 pb-0"><i class="fa-solid fa-check-circle me-2"></i> Recently Completed</h5>
+                            <button class="btn btn-sm btn-outline-danger" onclick="clearCompletedTasks()" title="Clear all completed tasks">
+                                <i class="fa-solid fa-trash-can"></i> Clear
+                            </button>
+                        </div>
+                        <ul class="list-group" id="completedList">
+                            <!-- Populated by JS -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwNmiBT2HS4OWq_UhXaD8i5anMFiYbf5p32unw8YvzOlHMjkkrvDdPnQwWJtd613zhsdg/exec';
+        let records = []; 
+        
+        // Chart instance
+        let chartProduction = null;
+
+        // =====================================================================
+        // 🔴 ข้อมูลจริงจากไฟล์ Excel ทั้งหมด (แผนPM โรงกำจัดตะกอน 2569-2570)
+        // =====================================================================
+        const maintenanceData = [
+            // 1. Filter Press No.1, 2 (SIEMENS)
+            { id: "m1", group: "FP No.1, 2", task: "ตรวจสอบระดับน้ำมันไฮดรอลิค Power Unit", pmType: "Daily", nextDue: "2026-11-15" },
+            { id: "m2", group: "FP No.1, 2", task: "Visual Inspection ชุด Power Unit", pmType: "Daily", nextDue: "2026-11-15" },
+            { id: "m3", group: "FP No.1, 2", task: "Visual Inspection กระบอกไฮดรอลิค", pmType: "Daily", nextDue: "2026-11-15" },
+            { id: "m4", group: "FP No.1, 2", task: "ทำความสะอาด Oil Filter", pmType: "3 Month", nextDue: "2026-12-10" },
+            { id: "m5", group: "FP No.1, 2", task: "ตรวจสอบน้ำมันไฮดรอลิค", pmType: "6 Month", nextDue: "2027-03-10" },
+            { id: "m6", group: "FP No.1, 2", task: "เปลี่ยนน้ำมันไฮดรอลิค", pmType: "Yearly", nextDue: "2026-10-01" },
+            { id: "m7", group: "FP No.1, 2", task: "เปลี่ยน Oil Filter", pmType: "Yearly", nextDue: "2026-10-01" },
+            { id: "m8", group: "FP No.1, 2", task: "Visual Inspection โครงสร้าง", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m9", group: "FP No.1, 2", task: "ตรวจสอบโครงสร้างและ Alignment", pmType: "3 Month", nextDue: "2026-12-10" },
+            { id: "m10", group: "FP No.1, 2", task: "Visual Inspection แขนล้างผ้ากรอง", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m11", group: "FP No.1, 2", task: "ตรวจสอบสายสลิง", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m12", group: "FP No.1, 2", task: "ทำความสะอาดหัว Nozzle", pmType: "Monthly", nextDue: "2026-12-01" },
+            { id: "m13", group: "FP No.1, 2", task: "Visual Inspection ผ้ากรอง", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m14", group: "FP No.1, 2", task: "เปลี่ยนผ้ากรอง", pmType: "2 Year", nextDue: "2027-10-01" },
+            { id: "m15", group: "FP No.1, 2", task: "ตรวจสอบ/เติมน้ำมันหล่อลื่น-จารบี", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m16", group: "FP No.1, 2", task: "Safety Light Curtains Check", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m17", group: "FP No.1, 2", task: "Emergency Switch Check", pmType: "Weekly", nextDue: "2026-11-18" },
+
+            // 2. Filter Press No.3 (TEFSA)
+            { id: "m18", group: "FP No.3", task: "ตรวจสอบระดับน้ำมันไฮดรอลิค Power Unit", pmType: "Daily", nextDue: "2026-11-15" },
+            { id: "m19", group: "FP No.3", task: "Visual Inspection ชุด Power Unit", pmType: "Daily", nextDue: "2026-11-15" },
+            { id: "m20", group: "FP No.3", task: "Visual Inspection กระบอกไฮดรอลิค", pmType: "Daily", nextDue: "2026-11-15" },
+            { id: "m21", group: "FP No.3", task: "ทำความสะอาด Oil Filter", pmType: "3 Month", nextDue: "2026-12-10" },
+            { id: "m22", group: "FP No.3", task: "ตรวจสอบน้ำมันไฮดรอลิค", pmType: "6 Month", nextDue: "2027-03-10" },
+            { id: "m23", group: "FP No.3", task: "เปลี่ยนน้ำมันไฮดรอลิค", pmType: "Yearly", nextDue: "2026-10-01" },
+            { id: "m24", group: "FP No.3", task: "เปลี่ยน Oil Filter", pmType: "Yearly", nextDue: "2026-10-01" },
+            { id: "m25", group: "FP No.3", task: "Visual Inspection โครงสร้าง", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m26", group: "FP No.3", task: "ตรวจสอบโครงสร้างและ Alignment", pmType: "3 Month", nextDue: "2026-12-10" },
+            { id: "m27", group: "FP No.3", task: "Visual Inspection แขนล้างผ้ากรอง", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m28", group: "FP No.3", task: "ตรวจสอบสายสลิง", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m29", group: "FP No.3", task: "ทำความสะอาดหัว Nozzle", pmType: "Monthly", nextDue: "2026-12-01" },
+            { id: "m30", group: "FP No.3", task: "Visual Inspection ผ้ากรอง", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m31", group: "FP No.3", task: "เปลี่ยนผ้ากรอง", pmType: "2 Year", nextDue: "2027-10-01" },
+            { id: "m32", group: "FP No.3", task: "ตรวจสอบ/เติมน้ำมันหล่อลื่น-จารบี", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m33", group: "FP No.3", task: "Safety Light Curtains Check", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m34", group: "FP No.3", task: "Emergency Switch Check", pmType: "Weekly", nextDue: "2026-11-18" },
+
+            // 3. Air Blower 1-4
+            { id: "m35", group: "Air Blower 1-4", task: "เปลี่ยนน้ำมันหล่อลื่น (2,000 ชม.) พร้อมอัดจารบีลูกปืน", pmType: "Yearly", nextDue: "2026-09-01" },
+            { id: "m36", group: "Air Blower 1-4", task: "เปลี่ยนสายพาน", pmType: "Yearly", nextDue: "2026-09-01" },
+            { id: "m37", group: "Air Blower 1-4", task: "ตรวจสอบและทำความสะอาดไส้กรองอากาศ", pmType: "Monthly", nextDue: "2026-11-20" },
+
+            // 4. Sludge Feed Pump 1-3 (ABEL)
+            { id: "m38", group: "Sludge Pump 1-3", task: "ตรวจสอบระดับน้ำมันหล่อลื่น", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m39", group: "Sludge Pump 1-3", task: "เปลี่ยนน้ำมันหล่อลื่น (3,000 ชม.)", pmType: "9 Month", nextDue: "2026-11-25" },
+            { id: "m40", group: "Sludge Pump 1-3", task: "ตรวจสอบระดับน้ำหล่อเย็น", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m41", group: "Sludge Pump 1-3", task: "เปลี่ยนน้ำหล่อเย็น", pmType: "Yearly", nextDue: "2027-01-01" },
+            { id: "m42", group: "Sludge Pump 1-3", task: "เปลี่ยนสายพาน", pmType: "Yearly", nextDue: "2027-01-01" },
+
+            // 5. Sludge Feed Pump 4-5 (Netzsch)
+            { id: "m43", group: "Sludge Pump 4-5", task: "Visual Check SM-pin joint Seal", pmType: "3 Month", nextDue: "2026-12-15" },
+            { id: "m44", group: "Sludge Pump 4-5", task: "Visual Check Stator, Rotor", pmType: "6 Month", nextDue: "2027-03-15" },
+            { id: "m45", group: "Sludge Pump 4-5", task: "Visual Check ระดับน้ำมัน Gear Box", pmType: "3 Month", nextDue: "2026-12-15" },
+            { id: "m46", group: "Sludge Pump 4-5", task: "ตรวจสอบน้ำมัน Gear Box", pmType: "Yearly", nextDue: "2026-10-01" },
+
+            // 6. Polymer Feed Pump 1-3 (ABEL)
+            { id: "m47", group: "Polymer Pump 1-3", task: "ตรวจสอบระดับน้ำมันหล่อลื่น", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m48", group: "Polymer Pump 1-3", task: "เปลี่ยนน้ำมันหล่อลื่น (3,000 ชม.)", pmType: "9 Month", nextDue: "2026-12-05" },
+            { id: "m49", group: "Polymer Pump 1-3", task: "ตรวจสอบสายพาน", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m50", group: "Polymer Pump 1-3", task: "เปลี่ยนสายพาน", pmType: "Yearly", nextDue: "2026-09-01" },
+
+            // 7. Polymer Feed Pump 4-5 (Netzsch)
+            { id: "m51", group: "Polymer Pump 4-5", task: "Visual Check SM-pin joint Seal", pmType: "3 Month", nextDue: "2026-12-15" },
+            { id: "m52", group: "Polymer Pump 4-5", task: "Visual Check Stator, Rotor", pmType: "6 Month", nextDue: "2027-03-15" },
+            { id: "m53", group: "Polymer Pump 4-5", task: "Visual Check ระดับน้ำมัน Gear Box", pmType: "3 Month", nextDue: "2026-12-15" },
+            { id: "m54", group: "Polymer Pump 4-5", task: "ตรวจสอบน้ำมัน Gear Box", pmType: "Yearly", nextDue: "2026-10-01" },
+
+            // 8. Polymer Preparation 1-3 (OBL)
+            { id: "m55", group: "Polymer Prep 1-3", task: "ตรวจสอบ Rota Flow Meter", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m56", group: "Polymer Prep 1-3", task: "ล้างทำความสะอาด Rota Flow Meter", pmType: "Yearly", nextDue: "2026-09-01" },
+            { id: "m57", group: "Polymer Prep 1-3", task: "ล้างทำความสะอาด Dilution Funnel", pmType: "Monthly", nextDue: "2026-12-01" },
+
+            // 9. Polymer Tank 1-2
+            { id: "m58", group: "Polymer Tank 1-2", task: "ตรวจสภาพ / ล้างทำความสะอาด", pmType: "Yearly", nextDue: "2026-08-01" },
+
+            // 10. Polymer Mixer 1-2
+            { id: "m59", group: "Polymer Mixer 1-2", task: "Visual Check General Operation", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m60", group: "Polymer Mixer 1-2", task: "ตรวจสอบจารบี", pmType: "Yearly", nextDue: "2026-10-01" },
+
+            // 11. Squeezing Pump 1-6
+            { id: "m61", group: "Squeezing Pump 1-6", task: "ตรวจสอบน้ำมันหล่อลื่น", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m62", group: "Squeezing Pump 1-6", task: "เปลี่ยนน้ำมันหล่อลื่น (2,000 ชม.)", pmType: "Yearly", nextDue: "2026-09-01" },
+
+            // 12. Squeezing Water Tank 1-3
+            { id: "m63", group: "Squeezing Tank 1-3", task: "ตรวจสภาพ / ล้างทำความสะอาด", pmType: "Yearly", nextDue: "2026-08-01" },
+
+            // 13. High Pressure Pump 1-2
+            { id: "m64", group: "High Pressure Pump 1-2", task: "ตรวจสอบระดับน้ำมันหล่อลื่น", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m65", group: "High Pressure Pump 1-2", task: "เปลี่ยนน้ำมันหล่อลื่น (3,000 ชม.)", pmType: "9 Month", nextDue: "2026-12-05" },
+            { id: "m66", group: "High Pressure Pump 1-2", task: "ตรวจสอบสายพาน", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m67", group: "High Pressure Pump 1-2", task: "เปลี่ยนสายพาน", pmType: "Yearly", nextDue: "2026-09-01" },
+
+            // 14. Cloth Washing Tank
+            { id: "m68", group: "Cloth Wash Tank", task: "ตรวจสภาพ / ล้างทำความสะอาด", pmType: "Yearly", nextDue: "2026-08-01" },
+
+            // 15. Air Compressor 1-5 (Piston)
+            { id: "m69", group: "Air Compressor 1-5", task: "ตรวจสอบแรงดัน", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m70", group: "Air Compressor 1-5", task: "ตรวจสอบวาล์วลม", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m71", group: "Air Compressor 1-5", task: "ตรวจสอบระดับน้ำมันหล่อลื่น", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m72", group: "Air Compressor 1-5", task: "เปลี่ยนน้ำมันหล่อลื่น (2,000 ชม.)", pmType: "9 Month", nextDue: "2026-11-20" },
+            { id: "m73", group: "Air Compressor 1-5", task: "เปลี่ยนสายพาน", pmType: "Yearly", nextDue: "2026-09-01" },
+            { id: "m74", group: "Air Compressor 1-5", task: "ตรวจสอบไส้กรองอากาศ", pmType: "Monthly", nextDue: "2026-12-01" },
+
+            // 16. Air Compressor 6 (Screw)
+            { id: "m75", group: "Air Compressor 6", task: "ตรวจสอบแรงดัน", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m76", group: "Air Compressor 6", task: "ตรวจสอบวาล์วลม", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m77", group: "Air Compressor 6", task: "ตรวจสอบระดับน้ำมันหล่อลื่น", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m78", group: "Air Compressor 6", task: "เปลี่ยนน้ำมันหล่อลื่น (2,000 ชม.)", pmType: "9 Month", nextDue: "2026-11-20" },
+            { id: "m79", group: "Air Compressor 6", task: "ตรวจสอบไส้กรองอากาศ", pmType: "Monthly", nextDue: "2026-12-01" },
+
+            // 17. Air Dryer 1-4
+            { id: "m80", group: "Air Dryer 1-4", task: "ตรวจสอบไส้กรองอากาศ", pmType: "Weekly", nextDue: "2026-11-18" },
+
+            // 18. Air Tank (10,000L)
+            { id: "m81", group: "Air Tank 10kL", task: "ตรวจสภาพ / ล้างทำความสะอาด", pmType: "Yearly", nextDue: "2026-08-01" },
+
+            // 19. Air Receiver Tank 1-6 (500L)
+            { id: "m82", group: "Air Receiver 1-6", task: "ตรวจสภาพ / ล้างทำความสะอาด", pmType: "Yearly", nextDue: "2026-08-01" },
+
+            // 20. Motorized Butterfly Valve
+            { id: "m83", group: "Motorized Valve", task: "ตรวจสอบการทำงานของวาล์วแบบ Remote / Manual", pmType: "3 Month", nextDue: "2026-12-10" },
+            { id: "m84", group: "Motorized Valve", task: "ตรวจสอบการทำงานของวาล์วแบบ Fully Open / Fully Close", pmType: "3 Month", nextDue: "2026-12-10" },
+            { id: "m85", group: "Motorized Valve", task: "ตรวจสอบรอยรั่วซึมของจารบี", pmType: "6 Month", nextDue: "2027-03-10" },
+
+            // 21. Instrument (Flow meter, Turbidity)
+            { id: "m86", group: "Instrument", task: "Magnetic Flow Meter - ตรวจสภาพอุปกรณ์", pmType: "Yearly", nextDue: "2026-08-01" },
+            { id: "m87", group: "Instrument", task: "Magnetic Flow Meter - สอบเทียบ Calibration", pmType: "Yearly", nextDue: "2026-08-01" },
+            { id: "m88", group: "Instrument", task: "เครื่องวัดความขุ่น - ตรวจสภาพหัววัดความขุ่น", pmType: "3 Month", nextDue: "2026-12-10" },
+            { id: "m89", group: "Instrument", task: "เครื่องวัดความขุ่น - สอบเทียบ Calibration", pmType: "Yearly", nextDue: "2026-08-01" },
+
+            // 22. Filter Press No.4, 5, 6 (PLATINUM)
+            { id: "m90", group: "FP No.4, 5, 6", task: "ตรวจเช็ค Alignment โครงสร้าง", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m91", group: "FP No.4, 5, 6", task: "ตรวจสอบน้ำมันไฮดรอลิคส์ Power Unit", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m92", group: "FP No.4, 5, 6", task: "ตรวจสอบข้อต่อสายไฮดรอลิคส์", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m93", group: "FP No.4, 5, 6", task: "เปลี่ยน Filter", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m94", group: "FP No.4, 5, 6", task: "ตรวจสอบน้ำมันไฮดรอลิคส์ Drip Tray", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m95", group: "FP No.4, 5, 6", task: "ตรวจสอบข้อต่อสายไฮดรอลิคส์ Drip Tray", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m96", group: "FP No.4, 5, 6", task: "ตรวจสอบรอยรั่วซึม Hydraulic Cylinder Filter Press", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m97", group: "FP No.4, 5, 6", task: "ตรวจสอบรอยรั่วซึม Hydraulic Cylinder Drip Tray", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m98", group: "FP No.4, 5, 6", task: "ตรวจสอบแผ่นกรอง", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m99", group: "FP No.4, 5, 6", task: "ตรวจสอบผ้ากรอง", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m100", group: "FP No.4, 5, 6", task: "ตรวจสอบสาย Squeezing Manifold", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m101", group: "FP No.4, 5, 6", task: "ตรวจสอบ Shifter", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m102", group: "FP No.4, 5, 6", task: "ตรวจสอบระดับน้ำมันหล่อโซ่ Shifter", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m103", group: "FP No.4, 5, 6", task: "ตรวจสอบ Cloth Washer", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m104", group: "FP No.4, 5, 6", task: "ตรวจสอบ/ทำความสะอาดหัวฉีดล้างผ้า Nozzle", pmType: "Monthly", nextDue: "2026-12-01" },
+            { id: "m105", group: "FP No.4, 5, 6", task: "ตรวจสอบจาระบี ลูกปืน/ลูกล้อ", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m106", group: "FP No.4, 5, 6", task: "ตรวจสอบ Emergency Switch", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m107", group: "FP No.4, 5, 6", task: "ตรวจสอบ Safety Light Curtain", pmType: "6 Month", nextDue: "2026-11-15" },
+
+            // 23. Sludge Dredger 1-2
+            { id: "m108", group: "Sludge Dredger 1-2", task: "Auger System - ตรวจสอบ/ทำความสะอาด", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m109", group: "Sludge Dredger 1-2", task: "Auger System - ตรวจสภาพอุปกรณ์", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m110", group: "Sludge Dredger 1-2", task: "Slurry Pump - ตรวจสอบสิ่งอุดตันใบพัดปั๊ม", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m111", group: "Sludge Dredger 1-2", task: "Slurry Pump - ตรวจสภาพอุปกรณ์", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m112", group: "Sludge Dredger 1-2", task: "Travel Drive - ตรวจสภาพอุปกรณ์", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m113", group: "Sludge Dredger 1-2", task: "Travel Drive - ตรวจสอบระดับน้ำมันหล่อลื่น", pmType: "Monthly", nextDue: "2026-12-01" },
+            { id: "m114", group: "Sludge Dredger 1-2", task: "Travel Drive - เปลี่ยนน้ำมันหล่อลื่น (Winch Gearbox)", pmType: "Yearly", nextDue: "2026-09-01" },
+            { id: "m115", group: "Sludge Dredger 1-2", task: "Hoist System - ตรวจสภาพอุปกรณ์", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m116", group: "Sludge Dredger 1-2", task: "Hoist System - ตรวจสอบระดับน้ำมันหล่อลื่น", pmType: "Monthly", nextDue: "2026-12-01" },
+            { id: "m117", group: "Sludge Dredger 1-2", task: "Hoist System - เปลี่ยนน้ำมันหล่อลื่น (Gearbox)", pmType: "Yearly", nextDue: "2026-09-01" },
+            { id: "m118", group: "Sludge Dredger 1-2", task: "Hydraulic System - ตรวจสภาพอุปกรณ์", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m119", group: "Sludge Dredger 1-2", task: "Hydraulic System - ตรวจสอบระดับน้ำมันไฮดรอลิคส์", pmType: "Monthly", nextDue: "2026-12-01" },
+            { id: "m120", group: "Sludge Dredger 1-2", task: "Hydraulic System - เปลี่ยนน้ำมันไฮดรอลิคส์", pmType: "Yearly", nextDue: "2026-09-01" },
+
+            // 24. Sand Separator 1-4
+            { id: "m121", group: "Sand Separator 1-4", task: "ล้างทำความสะอาด Screw Conveyor", pmType: "Monthly", nextDue: "2026-12-01" },
+            { id: "m122", group: "Sand Separator 1-4", task: "Visual Inspection", pmType: "Monthly", nextDue: "2026-12-01" },
+            { id: "m123", group: "Sand Separator 1-4", task: "ตรวจสภาพอุปกรณ์", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m124", group: "Sand Separator 1-4", task: "เปลี่ยนน้ำมันหล่อลื่น", pmType: "6 Month", nextDue: "2026-11-15" },
+
+            // 25. Sludge Feed Pump 6-9 (Netzsch)
+            { id: "m125", group: "Sludge Pump 6-9", task: "Visual Check SM-pin joint Seal", pmType: "3 Month", nextDue: "2026-12-15" },
+            { id: "m126", group: "Sludge Pump 6-9", task: "Visual Check Stator, Rotor", pmType: "6 Month", nextDue: "2027-03-15" },
+            { id: "m127", group: "Sludge Pump 6-9", task: "Visual Check ระดับน้ำมัน Gear Box", pmType: "3 Month", nextDue: "2026-12-15" },
+            { id: "m128", group: "Sludge Pump 6-9", task: "ตรวจสอบน้ำมัน Gear Box", pmType: "Yearly", nextDue: "2026-10-01" },
+
+            // 26. Squeezing Pump 7-12
+            { id: "m129", group: "Squeezing Pump 7-12", task: "ตรวจสอบน้ำมันหล่อลื่น", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m130", group: "Squeezing Pump 7-12", task: "เปลี่ยนน้ำมันหล่อลื่น (2,000 ชม.)", pmType: "Yearly", nextDue: "2026-09-01" },
+
+            // 27. Squeezing Water Tank 4-6
+            { id: "m131", group: "Squeezing Tank 4-6", task: "ตรวจสภาพ / ล้างทำความสะอาด", pmType: "Yearly", nextDue: "2026-08-01" },
+
+            // 28. High Pressure Pump 3-4
+            { id: "m132", group: "High Pressure Pump 3-4", task: "ตรวจสอบระดับน้ำมันหล่อลื่น", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m133", group: "High Pressure Pump 3-4", task: "เปลี่ยนน้ำมันหล่อลื่น (3,000 ชม.)", pmType: "9 Month", nextDue: "2026-12-05" },
+            { id: "m134", group: "High Pressure Pump 3-4", task: "ตรวจสอบสายพาน", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m135", group: "High Pressure Pump 3-4", task: "เปลี่ยนสายพาน", pmType: "Yearly", nextDue: "2026-09-01" },
+
+            // 29. Polymer Preparation 4-6 (PLATINUM)
+            { id: "m136", group: "Polymer Prep 4-6", task: "ตรวจสอบ Rota Flow Meter", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m137", group: "Polymer Prep 4-6", task: "ล้างทำความสะอาด Rota Flow Meter", pmType: "Yearly", nextDue: "2026-09-01" },
+            { id: "m138", group: "Polymer Prep 4-6", task: "ล้างทำความสะอาด Dilution Funnel", pmType: "Monthly", nextDue: "2026-12-01" },
+
+            // 30. Polymer Tank 3-4
+            { id: "m139", group: "Polymer Tank 3-4", task: "ตรวจสภาพ / ล้างทำความสะอาด", pmType: "Yearly", nextDue: "2026-08-01" },
+
+            // 31. Polymer Mixer 3-4
+            { id: "m140", group: "Polymer Mixer 3-4", task: "Visual Check General Operation", pmType: "Weekly", nextDue: "2026-11-18" },
+            { id: "m141", group: "Polymer Mixer 3-4", task: "ตรวจสอบจารบี", pmType: "Yearly", nextDue: "2026-10-01" },
+
+            // 32. Polymer Feed Pump 6-10 (Netzsch)
+            { id: "m142", group: "Polymer Pump 6-10", task: "Visual Check SM-pin joint Seal", pmType: "3 Month", nextDue: "2026-12-15" },
+            { id: "m143", group: "Polymer Pump 6-10", task: "Visual Check Stator, Rotor", pmType: "6 Month", nextDue: "2027-03-15" },
+            { id: "m144", group: "Polymer Pump 6-10", task: "Visual Check ระดับน้ำมัน Gear Box", pmType: "3 Month", nextDue: "2026-12-15" },
+            { id: "m145", group: "Polymer Pump 6-10", task: "ตรวจสอบน้ำมัน Gear Box", pmType: "Yearly", nextDue: "2026-10-01" },
+
+            // 33. Submersible Mixer 1-8
+            { id: "m146", group: "Submersible Mixer 1-8", task: "ตรวจสภาพอุปกรณ์", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m147", group: "Submersible Mixer 1-8", task: "เปลี่ยนน้ำมันหล่อลื่น (4,300 ชม.)", pmType: "6 Month", nextDue: "2026-11-15" },
+
+            // 34. Air Compressor 7-9 (Screw)
+            { id: "m148", group: "Air Compressor 7-9", task: "ตรวจสอบแรงดัน", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m149", group: "Air Compressor 7-9", task: "ตรวจสอบวาล์วลม", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m150", group: "Air Compressor 7-9", task: "ตรวจสอบระดับน้ำมันหล่อลื่น", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m151", group: "Air Compressor 7-9", task: "เปลี่ยนน้ำมันหล่อลื่น (2,000 ชม.)", pmType: "9 Month", nextDue: "2026-11-20" },
+            { id: "m152", group: "Air Compressor 7-9", task: "ตรวจสอบไส้กรองอากาศ", pmType: "Monthly", nextDue: "2026-12-01" },
+
+            // 35. Air Dryer 5-6
+            { id: "m153", group: "Air Dryer 5-6", task: "ตรวจสอบไส้กรองอากาศ", pmType: "Weekly", nextDue: "2026-11-18" },
+
+            // 36. Air Tank 3 (10,000L)
+            { id: "m154", group: "Air Tank 10kL (No.3)", task: "ตรวจสภาพ / ล้างทำความสะอาด", pmType: "Yearly", nextDue: "2026-08-01" },
+
+            // 37. Air Receiver Tank 7 (1,500L)
+            { id: "m155", group: "Air Receiver 7", task: "ตรวจสภาพ / ล้างทำความสะอาด", pmType: "Yearly", nextDue: "2026-08-01" },
+
+            // 38. Service Water Transfer Pump 1-2
+            { id: "m156", group: "Service Water Pump 1-2", task: "ตรวจสอบน้ำมันหล่อลื่น", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m157", group: "Service Water Pump 1-2", task: "เปลี่ยนน้ำมันหล่อลื่น (2,000 ชม.)", pmType: "Yearly", nextDue: "2026-09-01" },
+
+            // 39. Service Water Transfer Tank
+            { id: "m158", group: "Service Water Tank", task: "ตรวจสภาพ / ล้างทำความสะอาด", pmType: "Yearly", nextDue: "2026-08-01" },
+
+            // 40. Overflow Pump 1-2
+            { id: "m159", group: "Overflow Pump 1-2", task: "ตรวจสอบน้ำมันหล่อลื่น", pmType: "Weekly", nextDue: "2026-11-16" },
+            { id: "m160", group: "Overflow Pump 1-2", task: "ตรวจสภาพอุปกรณ์", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m161", group: "Overflow Pump 1-2", task: "เปลี่ยนน้ำมันหล่อลื่น", pmType: "6 Month", nextDue: "2026-11-15" },
+
+            // 41. Dynamic Inline Mixer 1-3
+            { id: "m162", group: "Dynamic Inline Mixer 1-3", task: "ตรวจสภาพอุปกรณ์", pmType: "6 Month", nextDue: "2026-11-15" },
+            { id: "m163", group: "Dynamic Inline Mixer 1-3", task: "เปลี่ยนน้ำมันหล่อลื่น", pmType: "Yearly", nextDue: "2026-09-01" },
+
+            // 42. Instrument (Flow meter, Turbidity, Radar Level)
+            { id: "m164", group: "Instrument", task: "Magnetic Flow Meter - ตรวจสภาพอุปกรณ์", pmType: "Yearly", nextDue: "2026-08-01" },
+            { id: "m165", group: "Instrument", task: "เครื่องวัดความขุ่น - ตรวจสภาพหัววัดความขุ่น", pmType: "3 Month", nextDue: "2026-12-10" },
+            { id: "m166", group: "Instrument", task: "Radar Level Transmitter - ตรวจสภาพอุปกรณ์", pmType: "Yearly", nextDue: "2026-08-01" }
+        ];
+
+        // ----------------------------------------------------
+        // Navigation Logic
+        // ----------------------------------------------------
+        function updateNavbar(pageId) {
+            const nav = document.getElementById('mainNav');
+            nav.innerHTML = ''; 
+
+            if (pageId === 'landing-page') {
+                // No nav
+            } else if (pageId === 'data-page' || pageId === 'summary-page') {
+                nav.innerHTML = `
+                    <li class="nav-item">
+                        <a class="nav-link ${pageId === 'data-page' ? 'active' : ''}" onclick="switchPage('data-page')"><i class="fa-solid fa-pen-to-square me-1"></i> Data Entry</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link ${pageId === 'summary-page' ? 'active' : ''}" onclick="switchPage('summary-page')"><i class="fa-solid fa-file-invoice me-1"></i> Summary</a>
+                    </li>
+                `;
+            } else if (pageId === 'maintenance-page') {
+                nav.innerHTML = `
+                    <li class="nav-item">
+                        <a class="nav-link active" onclick="switchPage('maintenance-page')"><i class="fa-solid fa-screwdriver-wrench me-1"></i> Maintenance System</a>
+                    </li>
+                `;
+            }
+        }
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.page-section').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            updateNavbar(pageId);
+
+            if(pageId === 'summary-page') loadSummaryData(); 
+            if(pageId === 'data-page') loadDataFromDatabase();
+            if(pageId === 'maintenance-page') renderMaintenancePage();
+        }
+
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('date').value = today;
+        document.getElementById('sumDate').value = today;
+        
+        document.getElementById('sumDate').addEventListener('change', function() {
+            updateHeaderDate(this.value);
+            loadSummaryData();
+        });
+
+        function updateHeaderDate(dateStr) {
+            if(!dateStr) return;
+            const d = new Date(dateStr);
+            const thaiMonths = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+            document.getElementById('headerDateDisplay').innerText = `วันที่ ${d.getDate()} ${thaiMonths[d.getMonth()]} ${d.getFullYear() + 543}`;
+        }
+
+        const powerInputs = ['sumLVDS1', 'sumLVDS2', 'sumLVMD1'];
+        powerInputs.forEach(id => {
+            document.getElementById(id).addEventListener('input', function() {
+                const lvds1 = parseFloat(document.getElementById('sumLVDS1').value) || 0;
+                const lvds2 = parseFloat(document.getElementById('sumLVDS2').value) || 0;
+                const lvmd1 = parseFloat(document.getElementById('sumLVMD1').value) || 0;
+                document.getElementById('sumTotalPower').value = (lvds1 + lvds2 + lvmd1).toFixed(2);
+            });
+        });
+
+        // ----------------------------------------------------
+        // Time Usage Calculation (Start Time vs Ready for Scrapping)
+        // ----------------------------------------------------
+        const startTimeInput = document.getElementById('startTime');
+        const squeezeEndInput = document.getElementById('squeezeEnd');
+        const timeUsageInput = document.getElementById('timeUsage');
+
+        function calculateTimeUsage() {
+            if (startTimeInput.value && squeezeEndInput.value) {
+                const start = new Date(`1970-01-01T${startTimeInput.value}:00`);
+                const end = new Date(`1970-01-01T${squeezeEndInput.value}:00`);
+                let diffMins = (end - start) / 60000; 
+                
+                // If end time is earlier than start time, assume it crossed midnight
+                if (diffMins < 0) diffMins += 1440; 
+                
+                const hours = Math.floor(diffMins / 60);
+                const minutes = Math.round(diffMins % 60);
+                timeUsageInput.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+            } else {
+                timeUsageInput.value = '';
+            }
+        }
+        
+        startTimeInput.addEventListener('change', calculateTimeUsage);
+        squeezeEndInput.addEventListener('change', calculateTimeUsage);
+        // Also recalculate if squeezeStart changes (optional, but harmless)
+        document.getElementById('squeezeStart').addEventListener('change', calculateTimeUsage);
+
+
+        // ----------------------------------------------------
+        // Sludge Database Logic
+        // ----------------------------------------------------
+        async function loadDataFromDatabase() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4"><i class="fa-solid fa-spinner fa-spin me-2"></i> กำลังโหลดข้อมูล...</td></tr>';
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                records = data.map(row => ({ ...row, date: row.date ? row.date.split('T')[0] : '' }));
+                updateUI();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                tbody.innerHTML = '<tr><td colspan="10" class="text-center text-danger py-4"><i class="fa-solid fa-circle-exclamation me-2"></i> ไม่สามารถเชื่อมต่อฐานข้อมูลได้</td></tr>';
+            }
+        }
+
+        document.getElementById('sludgeForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> กำลังบันทึก...';
+            submitBtn.disabled = true;
+
+            const newRecord = {
+                date: document.getElementById('date').value,
+                round: document.getElementById('round').value,
+                machine: document.getElementById('machine').value,
+                startTime: document.getElementById('startTime').value,
+                ssPercent: document.getElementById('ssPercent').value,
+                plPercent: document.getElementById('plPercent').value,
+                squeezeStart: document.getElementById('squeezeStart').value,
+                squeezeEnd: document.getElementById('squeezeEnd').value,
+                timeUsage: document.getElementById('timeUsage').value,
+                sludgeFeed: document.getElementById('sludgeFeed').value,
+                polymerFeed: document.getElementById('polymerFeed').value,
+                capacity: document.getElementById('capacity').value,
+                cakeDryness: document.getElementById('cakeDryness').value,
+                roundNotes: document.getElementById('roundNotes').value
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(newRecord),
+                    headers: { 'Content-Type': 'text/plain' } 
+                });
+                const result = await response.json();
+                if(result.result === 'success') {
+                    alert('✅ บันทึกข้อมูลลงฐานข้อมูลส่วนกลางสำเร็จ!');
+                    this.reset();
+                    document.getElementById('date').value = today; 
+                    loadDataFromDatabase(); 
+                } else {
+                    alert('❌ เกิดข้อผิดพลาด: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error saving:', error);
+                alert('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+            } finally {
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        function updateUI() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            if(records.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">ยังไม่มีข้อมูลในระบบ</td></tr>';
+                return;
+            }
+            const sortedRecords = [...records].reverse();
+            sortedRecords.forEach(rec => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${rec.date}</td>
+                    <td>#${rec.round}</td>
+                    <td>${rec.machine}</td>
+                    <td>${rec.startTime}</td>
+                    <td>${rec.squeezeStart}</td>
+                    <td>${rec.squeezeEnd}</td>
+                    <td class="text-primary fw-bold">${rec.timeUsage}</td>
+                    <td>${rec.sludgeFeed}</td>
+                    <td>${rec.polymerFeed}</td>
+                    <td>${rec.cakeDryness}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ----------------------------------------------------
+        // Summary Page & Dashboard Logic
+        // ----------------------------------------------------
+        function loadSummaryData() {
+            const sumDate = document.getElementById('sumDate').value;
+            updateHeaderDate(sumDate);
+            const dailyRecords = records.filter(r => r.date === sumDate);
+            const tbody = document.getElementById('summaryTableBody');
+            tbody.innerHTML = '';
+            let totalSludgeVol = 0;
+            let totalWeight = 0;
+
+            if (dailyRecords.length === 0) {
+                tbody.innerHTML = `<tr class="empty-row"><td colspan="9">ไม่พบข้อมูลสำหรับวันที่เลือก (No data found for this date)</td></tr>`;
+                updateDashboard(0); 
+                updateChart(0); 
+            } else {
+                dailyRecords.sort((a, b) => parseInt(a.round) - parseInt(b.round));
+                
+                dailyRecords.forEach(rec => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${rec.round}</td>
+                        <td>${rec.machine}</td>
+                        <td>${rec.startTime}</td>
+                        <td>${rec.squeezeEnd}</td>
+                        <td>${parseFloat(rec.cakeDryness).toFixed(2)}%</td>
+                        <td>${parseFloat(rec.polymerFeed).toFixed(1)}</td>
+                        <td>${parseFloat(rec.ssPercent).toFixed(2)}%</td>
+                        <td>${parseFloat(rec.sludgeFeed).toFixed(1)}</td>
+                        <td>${parseFloat(rec.capacity).toFixed(1)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                    totalSludgeVol += parseFloat(rec.sludgeFeed) || 0;
+                    totalWeight += parseFloat(rec.capacity) || 0;
+                });
+
+                // Update Summary Footer
+                document.getElementById('sumTotalCycles').innerText = dailyRecords.length;
+                document.getElementById('sumTotalSludgeVol').innerText = totalSludgeVol.toFixed(1);
+                document.getElementById('sumTotalWeight').innerText = totalWeight.toFixed(1);
+
+                // Update Dashboard & Chart
+                updateDashboard(totalWeight);
+                updateChart(totalWeight);
+            }
+
+            // Auto-fill Maintenance Notes
+            const maintenanceTableBody = document.getElementById('maintenanceTableBody');
+            maintenanceTableBody.innerHTML = '';
+            addMaintenanceRow(); 
+            const roundNotes = dailyRecords.map(r => r.roundNotes).filter(n => n && n.trim() !== "");
+            if (roundNotes.length > 0) {
+                document.querySelectorAll('.maint-input')[0].value = roundNotes[0];
+                for (let i = 1; i < roundNotes.length; i++) {
+                    addMaintenanceRow(roundNotes[i]);
+                }
+            }
+        }
+
+        function updateDashboard(actualWeight) {
+            document.getElementById('kpiActual').innerHTML = `${actualWeight.toFixed(1)} <span class="kpi-unit">Ton</span>`;
+        }
+
+        function updateChart(totalWeight = 0) {
+            if(chartProduction) chartProduction.destroy();
+            const ctxProd = document.getElementById('chartProduction').getContext('2d');
+            
+            chartProduction = new Chart(ctxProd, {
+                type: 'bar',
+                data: {
+                    labels: ['Daily Result'],
+                    datasets: [
+                        {
+                            label: 'Actual (Ton)',
+                            data: [totalWeight],
+                            backgroundColor: '#10b981',
+                            borderRadius: 5,
+                            barThickness: 80 
+                        },
+                        {
+                            label: 'Target (50 Ton)',
+                            data: [50],
+                            type: 'line',
+                            borderColor: '#ef4444',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 60 }
+                    }
+                }
+            });
+        }
+
+        function addMaintenanceRow(value = '') {
+            const tbody = document.getElementById('maintenanceTableBody');
+            if (tbody.children.length > 0) {
+                document.querySelectorAll('.btn-remove').forEach(btn => btn.style.display = 'block');
+            }
+            const tr = document.createElement('tr');
+            tr.className = 'maintenance-row';
+            tr.innerHTML = `
+                <td width="5%" class="text-center align-middle row-number"></td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <input type="text" class="form-control form-control-sm border-0 maint-input" placeholder="ระบุรายละเอียดการซ่อมบำรุง..." value="${value}">
+                        <button type="button" class="btn btn-sm btn-outline-danger btn-remove" onclick="removeMaintenanceRow(this)"><i class="fa-solid fa-times"></i></button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+            updateRowNumbers();
+        }
+
+        function removeMaintenanceRow(btn) {
+            const tbody = document.getElementById('maintenanceTableBody');
+            btn.closest('tr').remove();
+            if (tbody.children.length === 1) {
+                tbody.querySelector('.btn-remove').style.display = 'none';
+            }
+            updateRowNumbers();
+        }
+
+        function updateRowNumbers() {
+            const rows = document.querySelectorAll('#maintenanceTableBody .maintenance-row');
+            rows.forEach((row, index) => {
+                row.querySelector('.row-number').innerText = `${index + 1}.`;
+            });
+        }
+
+        function exportToExcel() {
+            const sumDate = document.getElementById('sumDate').value;
+            const sumShift = document.getElementById('sumShift').value;
+            const dailyRecords = records.filter(r => r.date === sumDate);
+
+            if (dailyRecords.length === 0) {
+                alert("ไม่พบข้อมูลการเดินระบบในวันที่เลือก");
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            
+            const lvds1 = document.getElementById('sumLVDS1').value;
+            const lvds2 = document.getElementById('sumLVDS2').value;
+            const lvmd1 = document.getElementById('sumLVMD1').value;
+            const totalPower = document.getElementById('sumTotalPower').value;
+            const water = document.getElementById('sumWater').value;
+            const ntu = document.getElementById('sumNTU').value;
+            const sludgeNTU = document.getElementById('sumSludgeNTU').value;
+            const sludgeSS = document.getElementById('sumSludgeSS').value;
+            const chem = document.getElementById('sumChem').value;
+            const sludgeNeed = document.getElementById('sumSludgeNeed').value;
+            
+            const maintenanceNotes = [];
+            document.querySelectorAll('.maint-input').forEach(input => {
+                if(input.value.trim() !== '') maintenanceNotes.push(input.value.trim());
+            });
+
+            const d = new Date(sumDate);
+            const thaiMonths = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+            const formattedDate = `วันที่ ${d.getDate()} ${thaiMonths[d.getMonth()]} ${d.getFullYear() + 543}`;
+
+            let totalPolymer = 0;
+            let totalSludge = 0;
+            let totalWeight = 0;
+
+            const noteText = "* LVMD-1 คือ ปริมาณการใช้ไฟที่หักปริมาณการใช้ไฟของสำนักงานสนามแล้ว\n" +
+                             "** ค่าความขุ่นน้ำระบายทิ้ง (Filtrated) สุ่มเก็บ 1 ตัวอย่างจากรอบบีบอัดตะกอนของวันนั้น\n" +
+                             "*** ปริมาณตะกอนที่เข้าโรงงาน (SS) คำนวณจากปริมาณสารแขวนลอยของน้ำดิบและปริมาณน้ำดิบที่เข้าถัง 21-24\n" +
+                             "**** ปริมาณตะกอนที่ต้องบีบอัดต่อวัน คำนวณจาก ผลรวมของปริมาณตะกอนแห้งที่ต้องบีบอัดต่อวันจากปริมาณสารแขวนลอยในน้ำดิบสูงสุดรวมกับปริมาณตะกอนที่เกิดจากสารเคมีช่วยตกตะกอน";
+
+            const sheetData = [
+                ["ส่วนกำจัดตะกอน 2 กองควบคุมระบบกำจัดตะกอน ฝ่ายโรงงานผลิตน้ำบางเขน"],
+                ["รายงานผลการบีบอัดตะกอนและรายการซ่อมบำรุงเครื่องจักร"],
+                [`ประจำผลัด: ${sumShift} | ${formattedDate}`],
+                [],
+                ["1. รายการแสดงข้อมูลระบบบีบอัดตะกอน", "", "", "", formattedDate],
+                ["รายการ", "ปริมาณ", "หน่วย", "หมายเหตุ"],
+                ["1. ปริมาณการใช้ไฟฟ้า LVDS-1", parseFloat(lvds1) || 0, "kWh/วัน", noteText],
+                ["2. ปริมาณการใช้ไฟฟ้า LVDS-2", parseFloat(lvds2) || 0, "kWh/วัน", ""],
+                ["3. ปริมาณการใช้ไฟฟ้า LVMD-1*", parseFloat(lvmd1) || 0, "kWh/วัน", ""],
+                ["4. ปริมาณการใช้ไฟฟ้าต่อวัน", parseFloat(totalPower) || 0, "kWh/วัน", ""],
+                ["5. ปริมาณการใช้น้ำประปาต่อวัน", parseFloat(water) || 0, "ลบ.ม./วัน", ""],
+                ["6. ความขุ่นน้ำระบายทิ้ง (Filtrated)**", parseFloat(ntu) || 0, "NTU", ""],
+                ["7. ปริมาณตะกอนที่เข้าโรงงาน (NTU)", parseFloat(sludgeNTU) || 0, "Ton", ""],
+                ["8. ปริมาณตะกอนที่เข้าโรงงาน (SS)***", parseFloat(sludgeSS) || 0, "Ton", ""],
+                ["9. ปริมาณตะกอนที่เกิดจากสารเคมีที่ช่วยตกตะกอน", parseFloat(chem) || 0, "Ton", ""],
+                ["10. ปริมาณตะกอนที่ต้องบีบอัดต่อวัน****", parseFloat(sludgeNeed) || 0, "Ton", ""],
+                [],
+                ["2. รายงานผลการเดินระบบบีบอัดตะกอน"],
+                ["การเดินระบบ", "FP No.", "เวลาเริ่ม", "เวลาหยุด", "% ตะกอนแข็ง (Sludge Cake)", "ปริมาณ Polymer (m³)", "% ความเข้มข้น", "m³/Cycle", "น้ำหนักตะกอน (Ton/Cycle)"]
+            ];
+
+            const sortedRecords = [...dailyRecords].sort((a, b) => parseInt(a.round) - parseInt(b.round));
+
+            sortedRecords.forEach((rec, idx) => {
+                sheetData.push([
+                    idx + 1, rec.machine, rec.startTime, rec.squeezeEnd, 
+                    parseFloat(rec.cakeDryness) / 100 || 0, parseFloat(rec.polymerFeed) || 0, 
+                    parseFloat(rec.ssPercent) / 100 || 0, parseFloat(rec.sludgeFeed) || 0, 
+                    parseFloat(rec.capacity) || 0
+                ]);
+                totalPolymer += parseFloat(rec.polymerFeed) || 0;
+                totalSludge += parseFloat(rec.sludgeFeed) || 0;
+                totalWeight += parseFloat(rec.capacity) || 0;
+            });
+
+            sheetData.push([]);
+            sheetData.push([`จำนวนรอบ ${dailyRecords.length} Cycles`, "", "", "", "", "", "", `ปริมาณตะกอนเข้าระบบ ${totalSludge.toFixed(1)} m³/day`, `น้ำหนักตะกอนต่อวัน ${totalWeight.toFixed(1)} Ton/day`]);
+            sheetData.push([]);
+            sheetData.push(["3. การซ่อมแซมเครื่องจักร/โครงสร้างอาคาร/อื่นๆ"]);
+            maintenanceNotes.forEach((note, index) => {
+                sheetData.push([`${index + 1}. ${note}`]);
+            });
+            if(maintenanceNotes.length === 0) sheetData.push(["-"]);
+
+            const ws = XLSX.utils.aoa_to_sheet(sheetData);
+            ws['!cols'] = [{wch: 40}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 25}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 20}];
+            ws['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } }, 
+                { s: { r: 2, c: 0 }, e: { r: 2, c: 8 } }, { s: { r: 4, c: 0 }, e: { r: 4, c: 2 } }, 
+                { s: { r: 4, c: 4 }, e: { r: 4, c: 8 } }, { s: { r: 6, c: 3 }, e: { r: 15, c: 3 } }, 
+                { s: { r: 18, c: 0 }, e: { r: 18, c: 8 } }, { s: { r: 19, c: 6 }, e: { r: 19, c: 7 } }, 
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, "Sludge Report");
+            XLSX.writeFile(wb, `Sludge_Report_${sumDate}_${sumShift.replace(/\s+/g, '')}.xlsx`);
+        }
+
+        // ----------------------------------------------------
+        // Maintenance Management Logic
+        // ----------------------------------------------------
+        let completedTaskIds = JSON.parse(localStorage.getItem('completedMaintenanceTasks')) || [];
+
+        function renderMaintenancePage() {
+            const dueTable = document.getElementById('dueTasksTable');
+            const checklistDiv = document.getElementById('todayChecklist');
+            const completedList = document.getElementById('completedList');
+            
+            dueTable.innerHTML = '';
+            checklistDiv.innerHTML = '';
+            completedList.innerHTML = '';
+            
+            document.getElementById('totalTasksCount').innerText = maintenanceData.length;
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            maintenanceData.forEach((task, index) => {
+                if (completedTaskIds.includes(task.id)) return; 
+
+                let rowClass = 'status-normal';
+                let badgeClass = 'bg-secondary';
+                let statusText = 'Upcoming';
+                
+                const dueDate = new Date(task.nextDue);
+                const diffTime = dueDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays < 0) {
+                    statusText = 'Overdue';
+                    rowClass = 'status-due';
+                    badgeClass = 'bg-danger';
+                } else if (diffDays <= 7) {
+                    statusText = `Due in ${diffDays} days`;
+                    rowClass = 'status-upcoming';
+                    badgeClass = 'bg-warning text-dark';
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = rowClass;
+                tr.innerHTML = `
+                    <td><span class="machine-badge">${task.group}</span></td>
+                    <td>${task.task}</td>
+                    <td>${task.pmType}</td>
+                    <td>${task.nextDue}</td>
+                    <td><span class="badge ${badgeClass}">${statusText}</span></td>
+                `;
+                tr.dataset.search = `${task.group} ${task.task} ${task.pmType}`.toLowerCase();
+                dueTable.appendChild(tr);
+            });
+
+            const priorityTasks = maintenanceData.filter(t => {
+                if (completedTaskIds.includes(t.id)) return false;
+                const dueDate = new Date(t.nextDue);
+                const diffTime = dueDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays <= 7;
+            }).slice(0, 5);
+            
+            if(priorityTasks.length === 0) {
+                checklistDiv.innerHTML = '<div class="p-3 text-center text-muted">ไม่มีรายการที่ต้องทำในวันนี้</div>';
+            } else {
+                priorityTasks.forEach((task, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'checklist-item';
+                    div.innerHTML = `
+                        <input type="checkbox" id="chk_${task.id}" onchange="completeTask('${task.id}', '${task.group}', '${task.task}')">
+                        <label for="chk_${task.id}">
+                            <span class="machine-badge">${task.group}</span> ${task.task}
+                        </label>
+                    `;
+                    checklistDiv.appendChild(div);
+                });
+            }
+
+            const completedTasks = maintenanceData.filter(t => completedTaskIds.includes(t.id));
+            if(completedTasks.length === 0) {
+                completedList.innerHTML = '<li class="list-group-item text-muted text-center py-3">ยังไม่มีรายการที่ทำเสร็จในขณะนี้</li>';
+            } else {
+                completedTasks.forEach(task => {
+                    const todayStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center border-success';
+                    li.style.backgroundColor = '#f0fdf4';
+                    li.innerHTML = `
+                        <div>
+                            <i class="fa-solid fa-check-circle text-success me-2"></i> 
+                            <span class="machine-badge bg-success text-white">${task.group}</span> ${task.task}
+                        </div>
+                        <small class="text-muted">${todayStr}</small>
+                    `;
+                    completedList.appendChild(li);
+                });
+            }
+        }
+
+        function completeTask(taskId, machine, taskName) {
+            if(!completedTaskIds.includes(taskId)) {
+                completedTaskIds.push(taskId);
+                localStorage.setItem('completedMaintenanceTasks', JSON.stringify(completedTaskIds));
+                renderMaintenancePage();
+            }
+        }
+
+        function clearCompletedTasks() {
+            if(confirm("คุณแน่ใจหรือไม่ว่าต้องการล้างรายการที่ทำเสร็จแล้วทั้งหมด? (รายการจะกลับไปอยู่ใน Checklist และตารางแผนงาน)")) {
+                completedTaskIds = [];
+                localStorage.setItem('completedMaintenanceTasks', JSON.stringify(completedTaskIds));
+                renderMaintenancePage();
+            }
+        }
+
+        function filterMaintenance() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const rows = document.querySelectorAll('#dueTasksTable tr');
+
+            rows.forEach(row => {
+                const searchData = row.dataset.search;
+                if (searchData.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Initial Load
+        loadDataFromDatabase();
+    </script>
+</body>
+</html>
