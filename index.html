@@ -894,7 +894,7 @@
 
 
         // ----------------------------------------------------
-        // Sludge Database Logic
+        // Sludge Database Logic (FIXED DATE FORMAT)
         // ----------------------------------------------------
         async function loadDataFromDatabase() {
             const tbody = document.getElementById('tableBody');
@@ -902,7 +902,16 @@
             try {
                 const response = await fetch(API_URL);
                 const data = await response.json();
-                records = data.map(row => ({ ...row, date: row.date ? row.date.split('T')[0] : '' }));
+                
+                // แก้ไขการจัดการวันที่ไม่ให้เพี้ยน
+                records = data.map(row => {
+                    let cleanDate = row.date || '';
+                    if (cleanDate.includes('T')) {
+                        cleanDate = cleanDate.split('T')[0];
+                    }
+                    return { ...row, date: cleanDate };
+                });
+
                 updateUI();
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -917,8 +926,11 @@
             submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> กำลังบันทึก...';
             submitBtn.disabled = true;
 
+            // ดึงวันที่จาก input และบังคับให้เป็น Format YYYY-MM-DD
+            const rawDate = document.getElementById('date').value;
+            
             const newRecord = {
-                date: document.getElementById('date').value,
+                date: rawDate,
                 round: document.getElementById('round').value,
                 machine: document.getElementById('machine').value,
                 startTime: document.getElementById('startTime').value,
@@ -985,7 +997,7 @@
         }
 
         // ----------------------------------------------------
-        // Summary Page & Dashboard Logic (UPDATED with Total Calculation)
+        // Summary Page & Dashboard Logic
         // ----------------------------------------------------
         function loadSummaryData() {
             const sumDate = document.getElementById('sumDate').value;
